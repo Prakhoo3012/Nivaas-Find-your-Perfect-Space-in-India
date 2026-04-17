@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import api from "../api/axiosInstance";
 
 function EyeIcon({ open }) {
   return open ? (
@@ -55,7 +56,7 @@ function LoginForm() {
   const [showPw, setShowPw] = useState(false);
   const [loading, setLoading] = useState(false);
   const [toasts, setToasts] = useState([]);
-  const { user, login } = useAuth();
+  const { login } = useAuth();
 
   const addToast = (msg, type = "success") => {
     const tid = Date.now();
@@ -104,13 +105,12 @@ function LoginForm() {
       setErrors({});
       setLoading(true);
 
-      const res = await login(form); 
+      // login() handles token storage; returns the userData object
+      const userData = await login(form);
 
-      localStorage.setItem("accessToken", res.data.data.accessToken);
-
-      navigate("/");
+      // Redirect based on role
+      navigate("/smart-dashboard");
     } catch (err) {
-      console.error(err.response);
       handleApiError(err);
     } finally {
       setLoading(false);
@@ -242,9 +242,16 @@ function RegisterForm() {
       return;
     }
     setLoading(true);
-    await new Promise((r) => setTimeout(r, 1400));
-    setLoading(false);
-    setDone(true);
+    try {
+      const { confirmPassword, agreed, ...payload } = form;
+      await api.post("/auth/register", payload);
+      setDone(true);
+    } catch (err) {
+      const msg = err.response?.data?.message || "Registration failed. Please try again.";
+      setErrors((prev) => ({ ...prev, _form: msg }));
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (done)

@@ -10,7 +10,7 @@ export default function Navbar({ scrolled }) {
 
 const handleLogout = async () => {
   try {
-    logout;
+    const res = await logout();
 
     navigate("/");
   } catch (err) {
@@ -84,7 +84,7 @@ const handleLogout = async () => {
                 Sign in
               </button>
 
-              <button className="btn-cta" onClick={() => navigate("/register")}>
+              <button className="btn-cta" onClick={() => navigate("/auth")}>
                 Register
               </button>
             </>

@@ -1,4 +1,3 @@
-// ── Tenant mock bookings ──────────────────────────────────────
 export const TENANT_BOOKINGS = [
   {
     _id: "b1",
@@ -70,6 +69,7 @@ export const TENANT_BOOKINGS = [
     bookingType: "per_night",
   },
 ];
+
 
 // ── Tenant wishlist ───────────────────────────────────────────
 export const TENANT_WISHLIST = [

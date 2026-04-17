@@ -1,7 +1,8 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { TENANT_PROFILE, TENANT_BOOKINGS, TENANT_WISHLIST } from "../constants/tenant";
+import { TENANT_BOOKINGS, TENANT_PROFILE, TENANT_WISHLIST } from "../constants/tenant";
 import { fmt, fmtDate } from "../utils/helpers";
+import { useAuth } from "../context/AuthContext";
 import api from "../api/axiosInstance";
 
 // ─── Toggle switch ─────────────────────────────────────────────
@@ -31,7 +32,7 @@ function Toast({ toasts }) {
 }
 
 // ─── PERSONAL INFO SECTION ────────────────────────────────────
-function PersonalInfo({ user, addToast }) {
+function PersonalInfo({ user, addToast, updateUser }) {
   const [editing, setEditing] = useState(false);
   const [saving,  setSaving]  = useState(false);
   const [form,    setForm]    = useState({
@@ -44,16 +45,21 @@ function PersonalInfo({ user, addToast }) {
     about:    user.about,
   });
 
-  console.log("Form: ", form)
 
   const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }));
 
   const handleSave = async () => {
     setSaving(true);
-    await new Promise((r) => setTimeout(r, 1000));
-    setSaving(false);
-    setEditing(false);
-    addToast("Profile updated successfully!", "success");
+    try {
+      await api.patch("/users/update-profile", form);
+      if (updateUser) updateUser(form);
+      setEditing(false);
+      addToast("Profile updated successfully!", "success");
+    } catch (err) {
+      addToast(err.response?.data?.message || "Failed to save. Try again.", "error");
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleCancel = () => {
@@ -328,8 +334,8 @@ function ProfileSidebar({ profile, bookings }) {
         <div className="up-quick-head">Quick actions</div>
         {[
           { label:"Browse listings",   action: () => navigate("/")                },
-          { label:"My bookings",       action: () => navigate("/tenant-dashboard") },
-          { label:"My wishlist",       action: () => navigate("/tenant-dashboard") },
+          { label:"My bookings",       action: () => navigate("/smart-dashboard") },
+          { label:"My wishlist",       action: () => navigate("/smart-dashboard") },
         ].map((item) => (
           <div key={item.label} className="up-quick-item" style={{ cursor:"pointer" }} onClick={item.action}>
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="9 18 15 12 9 6"/></svg>
@@ -350,32 +356,11 @@ function ProfileSidebar({ profile, bookings }) {
 
 // ─── MAIN PROFILE PAGE ────────────────────────────────────────
 export default function UserProfilePage() {
+  // ProtectedRoute ensures user is always non-null here
+  const { user, updateUser } = useAuth();
+  console.log("User: ", user);
   const navigate = useNavigate();
   const [toasts, setToasts] = useState([]);
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const profile = TENANT_PROFILE;
-
-useEffect(() => {
-  const fetchUser = async () => {
-    try {
-      const res = await api.get("/users/current-user");
-      console.log("User page RES: ", res);
-
-      setUser(res?.data?.data);
-    } catch (err) {
-      console.log("ERROR FROM User: ", err);
-
-      // ❌ Not logged in → redirect
-      navigate("/auth");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  fetchUser();
-}, [navigate]);
-
 
   const addToast = (msg, type = "success") => {
     const id = Date.now();
@@ -383,15 +368,11 @@ useEffect(() => {
     setTimeout(() => setToasts((t) => t.filter((x) => x.id !== id)), 3500);
   };
 
-  if (loading) {
-    return <div className="loading">Loading...</div>;
-  }
-
   return (
     <div className="up-root">
       {/* ── Navbar ───────────────────────────────────────────── */}
       <nav className="up-navbar">
-        <button className="up-back-btn" onClick={() => navigate("/tenant-dashboard")}>
+        <button className="up-back-btn" onClick={() => navigate("/smart-dashboard")}>
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="15 18 9 12 15 6"/></svg>
           Dashboard
         </button>
@@ -402,7 +383,7 @@ useEffect(() => {
               <polyline points="9 22 9 12 15 12 15 22" />
             </svg>
           </div>
-          <span className="up-brand-name">Nivaas</span>
+          <span className="up-brand-name" onClick={() => navigate("/")}>Nivaas</span>
         </div>
         <div className="up-nav-actions">
           <button onClick={() => navigate("/")}
@@ -437,10 +418,10 @@ useEffect(() => {
             </div>
             <div className="up-hero-stats">
               {[
-                { val: profile.stats.totalBookings, label:"Bookings"  },
-                { val: profile.stats.completed,     label:"Completed" },
-                { val: profile.stats.reviewsGiven,  label:"Reviews"   },
-                { val: profile.stats.wishlistCount,  label:"Saved"    },
+                { val: TENANT_PROFILE.stats.totalBookings, label:"Bookings"  },
+                { val: TENANT_PROFILE.stats.completed,     label:"Completed" },
+                { val: TENANT_PROFILE.stats.reviewsGiven,  label:"Reviews"   },
+                { val: TENANT_PROFILE.stats.wishlistCount,  label:"Saved"    },
               ].map((s) => (
                 <div key={s.label} className="up-hero-stat">
                   <div className="up-hero-stat-val">{s.val}</div>
@@ -459,7 +440,7 @@ useEffect(() => {
         <div className="up-grid">
           {/* Left column */}
           <div>
-            <PersonalInfo      user={user} addToast={addToast} />
+            <PersonalInfo      user={user} addToast={addToast} updateUser={updateUser} />
             <SecuritySection   addToast={addToast} />
             <VerificationSection addToast={addToast} />
             <PreferencesSection  addToast={addToast} />

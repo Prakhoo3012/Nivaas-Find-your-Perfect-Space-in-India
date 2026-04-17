@@ -249,7 +249,7 @@ export default function BillingPage() {
               className={`nav-item${activeNav === item.id ? " active" : ""}`}
               onClick={() => {
                 if (item.id === "billing") { setActiveNav("billing"); return; }
-                navigate("/dashboard");
+                navigate("/smart-dashboard");
               }}
             >
               {item.label}
@@ -418,6 +418,11 @@ export default function BillingPage() {
                       <td className="billing-td"><StatusPill status={inv.status} /></td>
                       <td className="billing-td" onClick={(e) => e.stopPropagation()}>
                         <div style={{ display:"flex", gap:5 }}>
+                          {inv.status !== "paid" && (
+                            <button className="btn-sm" style={{ color:"var(--gold)", borderColor:"rgba(200,169,110,0.25)", background:"rgba(200,169,110,0.08)" }} onClick={(e) => { e.stopPropagation(); navigate("/payment", { state: { invoice: inv } }); }}>
+                              Pay now
+                            </button>
+                          )}
                           {inv.status !== "paid" && (
                             <button className="btn-sm" style={{ color:"var(--gold)", borderColor:"rgba(200,169,110,0.25)", background:"rgba(200,169,110,0.08)" }} onClick={(e) => markPaid(inv.id, e)}>
                               Mark paid

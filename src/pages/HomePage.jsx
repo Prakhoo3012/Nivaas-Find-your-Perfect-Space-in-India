@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { allListings } from "../api/listings.js";
-import { CITIES, CATEGORIES, AMENITY_LABEL_MAP } from "../constants/index.js";
+import { CITIES, CITY_ICONS, CATEGORIES, AMENITY_LABEL_MAP } from "../constants/index.js";
 import PropertyCard from "../components/home/PropertyCard.jsx";
 import FiltersSidebar from "../components/home/FiltersSidebar.jsx";
 import Pagination from "../components/common/Pagination.jsx";
@@ -71,8 +71,16 @@ export default function HomePage() {
   const totalPages = Math.max(1, Math.ceil(filtered.length / ITEMS_PER_PAGE));
   const paginated  = filtered.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
 
-  // unique cities for the city strip
-  const uniqueCities = [...new Map(listings.map((l) => [l.location.city, l])).values()];
+  // unique cities from real listings — naam, real count, aur icon map se icon
+  const uniqueCities = Object.values(
+    listings.reduce((acc, l) => {
+      const city = l.location?.city;
+      if (!city) return acc;
+      if (!acc[city]) acc[city] = { name: city, count: 0, icon: CITY_ICONS[city] || "🏙️" };
+      acc[city].count += 1;
+      return acc;
+    }, {})
+  ).sort((a, b) => b.count - a.count); // sabse zyada listings wali city pehle
 
   return (
     <div className="home-root">
@@ -196,13 +204,11 @@ export default function HomePage() {
               <h2 className="section-heading">Browse by city</h2>
               <p className="section-subheading">Explore verified listings in India's top destinations</p>
               <div className="cities-grid">
-                {CITIES.map((c) => (
+                {uniqueCities.map((c) => (
                   <div key={c.name} className="city-card" onClick={() => setCity(c.name)}>
                     <div className="city-icon">{c.icon}</div>
                     <div className="city-name">{c.name}</div>
-                    <div className="city-count">
-                      {listings.filter((l) => l.location.city === c.name).length || c.count} listings
-                    </div>
+                    <div className="city-count">{c.count} listing{c.count !== 1 ? "s" : ""}</div>
                   </div>
                 ))}
               </div>

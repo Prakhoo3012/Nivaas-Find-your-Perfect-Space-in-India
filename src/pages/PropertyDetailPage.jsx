@@ -11,6 +11,7 @@ export default function PropertyDetailPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
 
+  const currDate = new Date()
   const [listing, setListing] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -18,8 +19,8 @@ export default function PropertyDetailPage() {
   const [wishlisted, setWishlisted] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const [guests, setGuests] = useState(2);
-  const [checkIn, setCheckIn] = useState("2025-07-15");
-  const [checkOut, setCheckOut] = useState("2025-07-18");
+  const [checkIn, setCheckIn] = useState(currDate);
+  const [checkOut, setCheckOut] = useState(currDate);
   const [toasts, setToasts] = useState([]);
   const [booked, setBooked] = useState(false);
   const [booking, setBooking] = useState(false);
