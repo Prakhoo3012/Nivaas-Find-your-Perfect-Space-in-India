@@ -248,4 +248,7 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
 
 })
 
+
+const updateInfo = asyncHandler(async(req, res) => {})
+
 export { userRegister, loginUser, logoutUser, getCurrentUser, dashboardInfo, refreshAccessToken };
