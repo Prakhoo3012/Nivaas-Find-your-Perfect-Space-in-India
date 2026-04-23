@@ -21,17 +21,14 @@ export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Public */}
         <Route path="/" element={<HomePage />} />
         <Route path="/auth" element={<AuthPage />} />
 
-        {/* Property detail */}
         <Route
           path="/properties/get-property/:id"
           element={<PropertyDetailPage />}
         />
 
-        {/* Protected routes */}
         <Route
           path="/smart-dashboard"
           element={
@@ -76,7 +73,6 @@ export default function App() {
 
         <Route path="/submission-status" element={<SubmissionStatus />} />
 
-        {/* Legacy dashboard redirects → unified dashboard */}
         <Route
           path="/dashboard"
           element={<Navigate to="/smart-dashboard" replace />}
@@ -114,7 +110,6 @@ export default function App() {
           }
         />
 
-        {/* Catch-all */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
